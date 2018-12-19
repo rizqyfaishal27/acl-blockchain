@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ACL Hahaha</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"></head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6">
+				<h3 id="account"></h3>
+				<h4 id="deviceId"></h4>
+			</div>
+		</div>
+		<div class="row" >
+			<div class="col-md-6 col-md-push-3" style="padding-top: 1rem; padding-bottom: 1rem;">
+				<br>
+				<input class="form-control" type="text" name="userTarget" placeholder="User Target (hexa)" id="userTarget">
+				<br>
+				<button id="save" role="button" class="btn btn-primary">Save</button>
+			</div>
+			<br>
+			<div class="col-md-9 col-md-push-3">
+				<div class="alert alert-success" id="status">
+					
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<h3>Permissions Access</h3>
+				<table class="table">
+					<thead>
+						<tr>
+							<td>No</td>
+							<td>User Address</td>
+							<td>Delete?</td>
+						</tr>
+					</thead>
+					<tbody id="permissions"></tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+<script type="text/javascript">
+	var protocol = location.protocol;
+	var slashes = protocol.concat("//");
+	var full = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
+
+	var socket = io(full);
+
+	var url = new URL(window.location.href);
+	var c = url.searchParams.get("deviceId");
+
+	$('#save').on('click', function() {
+		var userTarget = $('#userTarget').val();
+		$.post('/grantAccess', {
+			userTarget: userTarget,
+			deviceId: c
+		})
+		.then(data => {
+			$('#userTarget').val('');
+			$('#status').html(JSON.stringify(data));
+		})
+	})
+
+	window.onDeletePermissionClick = function(userTarget) {
+		var conf = confirm("Delete Permission?");
+		if(conf) {
+			$.post('/removeAccess', {
+				deviceId: c,
+				userTarget: userTarget
+			})
+			.then(function(data) {
+				$('#status').html(JSON.stringify(data));
+			})
+		}
+	}
+
+
+	$('#deviceId').html("Device id: " + c);
+	$.get('/device-permissions?deviceId=' + c)
+		.then(function(data) {
+			var t = "";
+			for(var i = 0;i<data.permissions.length;i++) {
+				t += '<tr><td>' + (i+1) + '</td><td>' + data.permissions[i] + '</td><td><button class="btn btn-danger" onclick="onDeletePermissionClick(' + data.permissions[i]  + ')">delete</button></td></tr>';
+			}
+			$('#permissions').html(t);
+		})
+
+
+	socket.on('connect', function() {
+		socket.on('message', function(msg) {
+			var message = JSON.parse(msg);
+			if(message.event == 'deviceAddedPermission' || message.event == 'removePermission') {
+				$.get('/device-permissions?deviceId=' + c)
+					.then(function(data) {
+						var t = "";
+						for(var i = 0;i<data.permissions.length;i++) {
+							t += '<tr><td>' + (i+1) + '</td><td>' + data.permissions[i] + '</td><td><button class="btn btn-danger" onclick="onDeletePermissionClick(' + data.permissions[i] + ')">delete</button></td></tr>';
+						}
+						$('#permissions').html(t);
+					})
+
+			}
+		})
+	})
+
+	$.get('/account')
+		.then(data => {
+			$('#account').html("Your account : " + data.account.address);
+		})
+</script>
+
+</body>
+</html>	

@@ -1,0 +1,27 @@
+{
+  "name": "acl-blockchain",
+  "version": "1.0.0",
+  "description": "Tugas sisdi",
+  "main": "index.js",
+  "author": "Rizqy Faishal <rizqyfaishal27@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.2.0",
+    "@babel/preset-stage-2": "^7.0.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "minimist": "^1.2.0",
+    "morgan": "^1.9.1",
+    "socket.io": "^2.2.0",
+    "truffle-contract": "^3.0.6",
+    "web3": "^1.0.0-beta.37"
+  },
+  "scripts": {
+    "start": "babel-node -- server.js -k 3440bbe367bc1e24450d240d9bbf0fc6e6b385f5e85eead9f24ebe41d9f63ae9 -p 8080"
+  }
+}
